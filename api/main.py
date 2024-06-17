@@ -1,9 +1,8 @@
-from fastapi import FastAPI, Request, HTTPException, BackgroundTasks
+from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 import httpx
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
-from db.tasks import process_data
 import os
 from dotenv import load_dotenv
 

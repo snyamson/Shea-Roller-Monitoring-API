@@ -33,7 +33,7 @@ def fetch_and_save_submissions():
         response = httpx.get(KOBO_SERVER_DATA_URL, headers={"Authorization": KOBO_SERVER_TOKEN})
         response.raise_for_status()
         submissions = response.json()
-        process_data(submissions)
+        # process_data(submissions)
         submission_data = submissions  # Update the global variable with the fetched data
     except httpx.RequestError as e:
         print(f"An error occurred while requesting {e.request.url!r}.")

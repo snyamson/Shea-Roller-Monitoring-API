@@ -1,10 +1,12 @@
 from fastapi import FastAPI, BackgroundTasks
 from fastapi.responses import JSONResponse
 import httpx
+from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 import os
 from dotenv import load_dotenv
+from .endpoints import raw_data
 
 load_dotenv()
 
@@ -19,6 +21,9 @@ app = FastAPI(
     description="The Kobo Collect Custom Data Processing Microservice Server is designed to handle custom data processing tasks for Kobo Collect submissions and efficiently processes and manages data in the database.",
     version="1.0.0"
 )
+
+# Include the router from the endpoint module
+app.include_router(raw_data.router, prefix="/api")
 
 scheduler = BackgroundScheduler()
 scheduler.start()
@@ -39,14 +44,18 @@ def fetch_and_save_submissions():
     except httpx.HTTPStatusError as e:
         print(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
 
-@app.get('/')
-def read_root(background_tasks: BackgroundTasks):
-    # Run fetch_and_save_submissions in the background to fetch data asynchronously
-    background_tasks.add_task(fetch_and_save_submissions)
-    
-    # Return the fetched submission_data as JSON response
-    return JSONResponse(content=submission_data)
+# API metadata
+api_description = "The Kobo Collect Custom Data Processing Microservice Server is designed to handle custom data processing tasks for Kobo Collect submissions and efficiently processes and manages data in the database."
+api_version = "1.0.0"
 
+@app.get('/')
+def read_root():
+    current_date_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return {
+        "date": current_date_time,
+        "description": api_description,
+        "version": api_version
+    }
 
 # App server setup
 if os.getenv("ENVIRONMENT") == "development":

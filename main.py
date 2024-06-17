@@ -106,15 +106,18 @@ def fetch_and_save_submissions():
     
 #     return {"status": "ok"}
 
-fetch_and_save_submissions()
+# fetch_and_save_submissions()
 # Schedule the job to run every 10 seconds
 # trigger = IntervalTrigger(seconds=10)
 # scheduler.add_job(fetch_and_save_submissions, trigger)
 
 # Route to serve HTML template at /
-@app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request, "analytics_data":analytics_data})
+# @app.get("/", response_class=HTMLResponse)
+# async def read_root(request: Request):
+#     return templates.TemplateResponse("index.html", {"request": request, "analytics_data":analytics_data})
+@app.get('/')
+def hello_world():
+    return "Hello,World"
 
 # App server setup
 if __name__ == "__main__":

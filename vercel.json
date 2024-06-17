@@ -18,5 +18,8 @@
       "src": "/(.*)",
       "dest": "main.py"
     }
-  ]
+  ],
+  "env": {
+    "LIBPQ_DEV": "libpq-dev"
+  }
 }

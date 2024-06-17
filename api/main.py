@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks
 from fastapi.responses import JSONResponse
 import httpx
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -39,13 +39,14 @@ def fetch_and_save_submissions():
     except httpx.HTTPStatusError as e:
         print(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
 
-# Schedule the job to run every 10 seconds
-trigger = IntervalTrigger(seconds=5)
-scheduler.add_job(fetch_and_save_submissions, trigger)
-
 @app.get('/')
-def read_root():
+def read_root(background_tasks: BackgroundTasks):
+    # Run fetch_and_save_submissions in the background to fetch data asynchronously
+    background_tasks.add_task(fetch_and_save_submissions)
+    
+    # Return the fetched submission_data as JSON response
     return JSONResponse(content=submission_data)
+
 
 # App server setup
 if os.getenv("ENVIRONMENT") == "development":

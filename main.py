@@ -49,25 +49,6 @@ def fetch_and_save_submissions():
         process_data(submissions)
 
 
-        # # Initialize a dictionary to store the count of submissions by date
-        # submission_counts_by_date = {}
-
-        # # Loop through the results
-        # for result in submissions['results']:
-        #     # Get the 'today' value
-        #     today_date = result['today']
-        #     print(parse_username(result['username']))
-            
-        #     # Increment the count for this date in the dictionary
-        #     if today_date in submission_counts_by_date:
-        #         submission_counts_by_date[today_date] += 1
-        #     else:
-        #         submission_counts_by_date[today_date] = 1
-
-        # # Print the counts
-        # for date, count in submission_counts_by_date.items():
-        #     print(f"Date: {date}, Count: {count}")
-
     except httpx.RequestError as e:
         print(f"An error occurred while requesting {e.request.url!r}.")
     except httpx.HTTPStatusError as e:

@@ -1,10 +1,12 @@
 import sqlalchemy
+import numpy as np
+import pandas as pd
 from datetime import datetime, date
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from utils.logger import logger
-from utils.utils import calculate_growth_rate
+from .utils import calculate_growth_rate
 from .dependencies import get_db
 from .models import Hub, Submission
 from .shared import analytics_data
@@ -40,12 +42,12 @@ def process_data(data):
                     try:
                         db.add(hub)
                         db.commit()
-                        logger.info(f"Added new hub: {hub_name} (ID: {hub_id})")
+                        # logger.info(f"Added new hub: {hub_name} (ID: {hub_id})")
                     except IntegrityError as e:
-                        logger.error(f"Error adding hub {hub_name} (ID: {hub_id}): {e}")
+                        # logger.error(f"Error adding hub {hub_name} (ID: {hub_id}): {e}")
                         db.rollback()  # Roll back the transaction in case of error
                 else:
-                    logger.info(f"Hub with ID {hub_id} already exists: {hub_name}")
+                    continue
                 
                 # Check if the submission already exists by submission_id
                 submission_id = result.get("_id")
@@ -68,10 +70,10 @@ def process_data(data):
                         bowls_picked_with_roller = result.get("survey_start/rental_information/Bowls_Picked_with_Roller", None),
                         additional_shea_collected_due_to_roller = result.get("survey_start/rental_information/Additional_Shea_Collected_due_to_Roller", None),
                         less_difficulty_using_roller=result.get("survey_start/rental_information/Less_Difficulty_using_Roller", ""),
-                        time_saved=result.get("survey_start/rental_information/Time_Saved", ""),
+                        time_saved=result.get("survey_start/rental_information/Time_Saved", None),
                         time_saved_used_for = result.get("survey_start/rental_information/Time_Saved_Used_For", ""),
                         time_saved_used_for_other = result.get("survey_start/rental_information/Time_Saved_Used_For_Other", ""),
-                        hours_taken_to_use = result.get("survey_start/rental_information/Hours_Taken_to_Use", ""),
+                        hours_taken_to_use = result.get("survey_start/rental_information/Hours_Taken_to_Use", None),
                         why_long_hours_of_use = result.get("survey_start/rental_information/Why_Long_Hours_of_Use", ""),
                         uuid=result.get("_uuid", ""),
                         status=result.get("_status", ""),
@@ -85,22 +87,45 @@ def process_data(data):
                         # logger.error(f"Error adding submission ID: {submission_id}: {e}")
                         db.rollback()
                 else:
-                    logger.info(f"Submission ID {submission_id} already exists, skipping.")
+                    # logger.info(f"Submission ID {submission_id} already exists, skipping.")
+                    continue
 
             # Add metrics to the analytics data dictionary
+            # Query to get the count of males and females
+            male_count = db.query(func.count(Submission.id)).filter(Submission.gender == 'male').scalar()
+            female_count = db.query(func.count(Submission.id)).filter(Submission.gender == 'female').scalar()
+            total_count = male_count + female_count
+
+            # INDICATORS
+             # Query to get all submissions
+            submissions = db.query(Submission.time_saved, Submission.hours_taken_to_use, Submission.additional_shea_collected_due_to_roller).all()
+            
+            # Convert the query results to a pandas DataFrame
+            df = pd.DataFrame(submissions, columns=['time_saved', 'hours_taken_to_use', 'additional_shea_collected_due_to_roller'])
+
+            # Calculate average time saved and average hours taken to use
+            average_time_saved = np.round(df['time_saved'].dropna().mean(), 2) if not df['time_saved'].dropna().empty else None
+            average_hours_taken_to_use = np.round(df['hours_taken_to_use'].dropna().mean(), 2) if not df['hours_taken_to_use'].dropna().empty else None
+            average_additional_shea_collected_due_to_roller = np.round(df['additional_shea_collected_due_to_roller'].dropna().mean(), 2) if not df['additional_shea_collected_due_to_roller'].dropna().empty else None
+
+            # Calculate percentages
+            percentage_male = np.round((male_count / total_count) * 100, 0) if total_count else 0
+            percentage_female = np.round((female_count / total_count) * 100, 0) if total_count else 0
             analytics_data['total_submissions'] = data['count']
             analytics_data['today_submissions'] = db.query(func.count(Submission.id)).filter(Submission.today == today_date).scalar()
             analytics_data['total_hubs'] = db.query(func.count(func.distinct(Hub.id))).scalar()
             analytics_data['growth_rate'] = calculate_growth_rate(db=db)
-            
-            # Check if `db` is an active session
-            if isinstance(db, Session):
-                logger.info("Database session is active.")
-            else:
-                logger.error("No active database session.")
-
-            # Print the transaction state of the session
-            logger.info(f"Transaction state: {db.is_active}")
+            analytics_data['respondents'] = {
+            "male": male_count,
+            "percentage_male": percentage_male,
+            "female": female_count,
+            "percentage_female": percentage_female
+            }
+            analytics_data['indicators'] = {
+            "average_time_saved": average_time_saved,
+            "average_hours_taken_to_use": average_hours_taken_to_use,
+            "average_additional_shea_collected_due_to_roller": average_additional_shea_collected_due_to_roller
+            }
 
     except sqlalchemy.exc.SQLAlchemyError as e:
         logger.error(f"SQLAlchemy error: {e}")

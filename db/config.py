@@ -17,9 +17,10 @@ def get_database_url(filename='database.ini', section='postgresql') -> str:
         password = parser.get('postgresql', 'password')
         host = parser.get('postgresql', 'host')
         dbname = parser.get('postgresql', 'dbname')
+        port = parser.get('postgresql', 'port')
 
         # Return database URL
-        return f'postgresql://{user}:{password}@{host}/{dbname}'
+        return f'postgresql://{user}:{password}@{host}:{port}/{dbname}'
     else:
         raise Exception('Section {0} not found in file {1}.'.format(section, filename))
     

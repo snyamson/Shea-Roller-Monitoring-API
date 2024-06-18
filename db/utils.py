@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from db.models import Hub, Submission
+from .models import Hub, Submission
 
 
 # Calculate growth rate and add it to analytics_data

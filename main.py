@@ -53,49 +53,7 @@ def fetch_and_save_submissions():
         print(f"An error occurred while requesting {e.request.url!r}.")
     except httpx.HTTPStatusError as e:
         print(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
-# Post Route to the webhook 
-# @app.post("/webhook")
-# async def webhook_listener(request: Request, background_tasks: BackgroundTasks):
-#     body = await request.body()
-#     signature = request.headers.get('X-Kobo-Signature')
-    
-#     if not signature or not verify_signature(request, body, signature):
-#         logger.warning("Invalid signature")
-#         raise HTTPException(status_code=403, detail="Forbidden")
-    
-#     # Log the raw request body for debugging
-#     logger.info(f"Data received: {body.decode()}")
-    
-#     try:
-#         # Parse the JSON payload using pydantic_core.from_json
-#         parsed_data = from_json(body, allow_partial=True)
-#         # Manually create an instance of KoboData
-#         data = KoboData(
-#             submission_id=parsed_data.get('_id'),
-#             formhub_uuid=parsed_data.get('formhub/uuid'),
-#             data=parsed_data
-#         )
-#     except ValidationError as e:
-#         logger.error(f"Error parsing or validating payload: {e}")
-#         raise HTTPException(status_code=400, detail="Invalid payload structure")
-    
-#     # Log the data
-#     logger.info(f"Submission Id: {data.submission_id}")
-    
-#     # Process the data in the background
-#     background_tasks.add_task(process_data, data)
-    
-#     return {"status": "ok"}
-
-# fetch_and_save_submissions()
-# Schedule the job to run every 10 seconds
-# trigger = IntervalTrigger(seconds=10)
-# scheduler.add_job(fetch_and_save_submissions, trigger)
-
-# Route to serve HTML template at /
-# @app.get("/", response_class=HTMLResponse)
-# async def read_root(request: Request):
-#     return templates.TemplateResponse("index.html", {"request": request, "analytics_data":analytics_data})
+        
 @app.get('/')
 def hello_world():
     return "Hello,World"

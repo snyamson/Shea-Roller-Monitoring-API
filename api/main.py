@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 import os
 from dotenv import load_dotenv
@@ -22,6 +23,14 @@ app = FastAPI(
 app.include_router(raw_data.router, prefix="/api")
 app.include_router(analytics.router, prefix="/api")
 
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3001", "*"],  # Allow localhost:3001 and all other origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 # API metadata
 api_description = "The Kobo Collect Custom Data Processing Microservice Server is designed to handle custom data processing tasks for Kobo Collect submissions and efficiently processes and manages data in the database."

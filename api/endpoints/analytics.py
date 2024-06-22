@@ -22,8 +22,7 @@ async def get_analytics():
             response = await client.get(KOBO_SERVER_DATA_URL, headers={"Authorization": KOBO_SERVER_TOKEN})
             response.raise_for_status()
             process_data(response.json())
-
-
+            
             return analytics_data
         
     except httpx.RequestError as e:
